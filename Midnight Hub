@@ -1,0 +1,189 @@
+-- Midnight Hub GUI
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Midnight Hub - Muscle Legends", "Midnight")
+
+-- Main
+local Main = Window:NewTab("Main")
+local MainSection = Main:NewSection("Auto Farm")
+
+-- Variables
+_G.autoStrength = false
+_G.autoRebirth = false
+_G.autoChest = false
+_G.autoBrawl = false
+_G.autoSpeed = false
+
+-- Functions
+function doStrength()
+    spawn(function()
+        while _G.autoStrength do
+            local args = {
+                [1] = "rep"
+            }
+            game:GetService("Players").LocalPlayer.muscleEvent:FireServer(unpack(args))
+            
+            -- Auto-equip training tools
+            local tools = {"Handstands", "Situps", "Pushups", "Weight"}
+            for _, tool in ipairs(tools) do
+                for _, item in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+                    if item:IsA("Tool") and item.Name == tool then
+                        item.Parent = game.Players.LocalPlayer.Character
+                    end
+                end
+            end
+            wait()
+        end
+    end)
+end
+
+function doRebirth()
+    spawn(function()
+        while _G.autoRebirth do
+            local args = {
+                [1] = "rebirthRequest"
+            }
+            game:GetService("ReplicatedStorage").rEvents.rebirthRemote:InvokeServer(unpack(args))
+            wait(0.1)
+        end
+    end)
+end
+
+function doChests()
+    spawn(function()
+        while _G.autoChest do
+            local chests = {
+                "Magma Chest",
+                "Mythical Chest",
+                "Golden Chest",
+                "Enchanted Chest",
+                "Legends Chest"
+            }
+            
+            for _, chest in ipairs(chests) do
+                local args = {
+                    [1] = chest
+                }
+                game:GetService("ReplicatedStorage").rEvents.checkChestRemote:InvokeServer(unpack(args))
+            end
+            wait(0.1)
+        end
+    end)
+end
+
+function doBrawl()
+    spawn(function()
+        while _G.autoBrawl do
+            local args = {
+                [1] = "joinBrawl"
+            }
+            game:GetService("ReplicatedStorage").rEvents.brawlEvent:FireServer(unpack(args))
+            wait(2)
+        end
+    end)
+end
+
+-- Toggles
+MainSection:NewToggle("Auto Strength", "Automatically trains strength", function(state)
+    _G.autoStrength = state
+    doStrength()
+end)
+
+MainSection:NewToggle("Auto Rebirth", "Automatically performs rebirths", function(state)
+    _G.autoRebirth = state
+    doRebirth()
+end)
+
+MainSection:NewToggle("Auto Chest", "Automatically collects all chests", function(state)
+    _G.autoChest = state
+    doChests()
+end)
+
+MainSection:NewToggle("Auto Join Brawl", "Automatically joins brawls", function(state)
+    _G.autoBrawl = state
+    doBrawl()
+end)
+
+-- Crystals
+local Crystals = Window:NewTab("Crystals")
+local CrystalSection = Crystals:NewSection("Open Crystals")
+
+local crystalTypes = {
+    "Blue Crystal",
+    "Green Crystal",
+    "Mythical Crystal",
+    "Frost Crystal",
+    "Inferno Crystal",
+    "Legends Crystal",
+    "Muscle Elite Crystal"
+}
+
+for _, crystal in ipairs(crystalTypes) do
+    CrystalSection:NewButton("Open " .. crystal, "Opens " .. crystal, function()
+        local args = {
+            [1] = "openCrystal",
+            [2] = crystal
+        }
+        game:GetService("ReplicatedStorage").rEvents.openCrystalRemote:InvokeServer(unpack(args))
+    end)
+end
+
+-- Teleports
+local Teleport = Window:NewTab("Teleports")
+local TeleportSection = Teleport:NewSection("Locations")
+
+local locations = {
+    ["Legends Gym"] = CFrame.new(4298.60059, 1121.89404, -3898.68066),
+    ["Mythical Gym"] = CFrame.new(2386.89038, 139.607956, 1094.26367),
+    ["Frost Gym"] = CFrame.new(-2752.56543, 125.822533, -386.73703),
+    ["Eternal Gym"] = CFrame.new(-6917.79248, 182.352829, -1336.63928),
+    ["Tiny Island"] = CFrame.new(-4.25301933, 220.993713, 1963.60168),
+    ["Brawl Arena 1"] = CFrame.new(985.910645, 163.795364, -7037.80615),
+    ["Brawl Arena 2"] = CFrame.new(4466.75342, 334.973602, -8425.74512),
+    ["Brawl Arena 3"] = CFrame.new(-1901.87695, 251.895432, -5899.64795)
+}
+
+for locationName, coords in pairs(locations) do
+    TeleportSection:NewButton(locationName, "Teleport to " .. locationName, function()
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = coords
+    end)
+end
+
+-- Player
+local Player = Window:NewTab("Player")
+local PlayerSection = Player:NewSection("Player Mods")
+
+PlayerSection:NewSlider("WalkSpeed", "Changes your walkspeed", 500, 16, function(s)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s
+end)
+
+PlayerSection:NewSlider("JumpPower", "Changes your jumppower", 350, 50, function(s)
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = s
+end)
+
+-- Misc
+local Misc = Window:NewTab("Misc")
+local MiscSection = Misc:NewSection("Other Features")
+
+MiscSection:NewButton("Reset Character", "Resets your character", function()
+    game.Players.LocalPlayer.Character:BreakJoints()
+end)
+
+MiscSection:NewKeybind("Toggle UI", "Toggles the UI visibility", Enum.KeyCode.RightControl, function()
+    Library:ToggleUI()
+end)
+
+-- Credits
+local Credits = Window:NewTab("Credits")
+local CreditsSection = Credits:NewSection("Midnight Hub")
+
+CreditsSection:NewLabel("Created by Assistant")
+CreditsSection:NewLabel("UI Library: Kavo UI")
+CreditsSection:NewLabel("Version 1.0.0")
+
+-- Anti AFK
+local vu = game:GetService("VirtualUser")
+game:GetService("Players").LocalPlayer.Idled:connect(function()
+    vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    wait(1)
+    vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+end)
